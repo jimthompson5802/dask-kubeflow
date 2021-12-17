@@ -1,0 +1,204 @@
+kubeflow:
+  scheduler-deployment-template:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: dask-scheduler
+      name: dask-scheduler
+      namespace: ${namespace}
+    spec:
+      selector:
+        matchLabels:
+          app: dask-scheduler
+          component: scheduler
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: dask-scheduler
+            component: scheduler
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          serviceAccount: default-editor
+          nodeSelector: { }
+          securityContext: { }
+          affinity: { }
+          tolerations: [ ]
+          containers:
+            - name: dask-scheduler
+              imagePullPolicy: Always
+              image: ${docker-image} #name of the image
+              args:
+                - dask-scheduler
+                - --port
+                - "8786"
+                - --bokeh-port
+                - "8787"
+              ports:
+                - containerPort: 8786
+                - containerPort: 8787
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 1G
+                requests:
+                  cpu: "2"
+                  memory: 1G
+
+  scheduler-service-template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: dask-scheduler
+      namespace: ${namespace}
+      labels:
+        app: dask-scheduler
+        component: scheduler
+    spec:
+      ports:
+        - name: dask-scheduler
+          #      appProtocol: tcp
+          port: 8786
+      selector:
+        app: dask-scheduler
+        component: scheduler
+
+  scheduler-envoyfilter-template:
+    apiVersion: networking.istio.io/v1alpha3
+    kind: EnvoyFilter
+    metadata:
+      name: add-header
+      namespace: ${namespace}
+    spec:
+      configPatches:
+        - applyTo: VIRTUAL_HOST
+          match:
+            context: SIDECAR_OUTBOUND
+            routeConfiguration:
+              vhost:
+                name: dask-scheduler.${namespace}.svc.cluster.local:8786
+                route:
+                  name: default
+          patch:
+            operation: MERGE
+            value:
+              request_headers_to_add:
+                - append: true
+                  header:
+                    key: kubeflow-userid
+                    value: ${namespace}
+
+  scheduler-ui-service-template:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: dask-scheduler
+        component: scheduler
+      name: dask-scheduler-ui
+      namespace: ${namespace}
+    spec:
+      ports:
+        - name: dask-scheduler-ui
+          port: 80
+          appProtocol: http
+          targetPort: 8787
+      selector:
+        app: dask-scheduler
+        component: scheduler
+      sessionAffinity: None
+      type: ClusterIP
+
+  scheduler-virtual-service-template:
+    apiVersion: networking.istio.io/v1alpha3
+    kind: VirtualService
+    metadata:
+      name: dask-scheduler
+      namespace: ${namespace}
+    spec:
+      gateways:
+        - kubeflow/kubeflow-gateway
+      hosts:
+        - '*'
+      http:
+        - match:
+            - uri:
+                prefix: /apps/${namespace}/dask/
+          rewrite:
+            uri: /
+          route:
+            - destination:
+                host: dask-scheduler-ui.${namespace}.svc.cluster.local
+                port:
+                  number: 80
+          timeout: 300s
+
+  worker-deployment-template:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: dask-workers
+      name: dask-workers
+      namespace: ${namespace}
+    spec:
+      selector:
+        matchLabels:
+          app: dask-workers
+          component: workers
+      replicas: ${number_workers} #number of worker pods
+      template:
+        metadata:
+          labels:
+            app: dask-workers
+            component: workers
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          serviceAccount: default-editor
+          nodeSelector: { }
+          securityContext: { }
+          affinity: { }
+          tolerations: [ ]
+          containers:
+            - name: dask-worker
+              imagePullPolicy: Always
+              image: ${docker_image}
+              env: [ ]
+              args:
+                - dask-worker
+                - dask-scheduler.${namespace}.svc.cluster.local:8786
+                - --nthreads
+                - "2"
+                - --memory-limit
+                - "2g"
+                - --no-dashboard
+              ports:
+                - containerPort: 8789
+              resources:
+                limits:
+                  cpu: "12"
+                  memory: 24G
+                requests:
+                  cpu: "2"
+                  memory: 2G
+
+  woker-peristentvolumneclaim-template:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app: dask-worker
+        component: singleuser-storage
+      name: dask-worker-pvc
+      namespace: ${namespace}
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: ${storage_size}Gi
+      storageClassName: ${storage_class}
+      volumeMode: Filesystem
