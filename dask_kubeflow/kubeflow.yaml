@@ -6,7 +6,7 @@ kubeflow:
       labels:
         app: dask-scheduler
       name: dask-scheduler
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       selector:
         matchLabels:
@@ -52,14 +52,14 @@ kubeflow:
     kind: Service
     metadata:
       name: dask-scheduler
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
       labels:
         app: dask-scheduler
         component: scheduler
     spec:
       ports:
-        - name: dask-scheduler
-          #      appProtocol: tcp
+        - name: tcp-dask-scheduler
+          appProtocol: tcp
           port: 8786
       selector:
         app: dask-scheduler
@@ -70,7 +70,7 @@ kubeflow:
     kind: EnvoyFilter
     metadata:
       name: add-header
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       configPatches:
         - applyTo: VIRTUAL_HOST
@@ -78,7 +78,7 @@ kubeflow:
             context: SIDECAR_OUTBOUND
             routeConfiguration:
               vhost:
-                name: dask-scheduler.${namespace}.svc.cluster.local:8786
+                name: dask-scheduler.kubeflow-user.svc.cluster.local:8786  # dask-scheduler.${namespace}.svc.cluster.local:8786
                 route:
                   name: default
           patch:
@@ -88,7 +88,7 @@ kubeflow:
                 - append: true
                   header:
                     key: kubeflow-userid
-                    value: ${namespace}
+                    value: kubeflow-user  # ${namespace}
 
   scheduler-ui-service-template:
     apiVersion: v1
@@ -98,7 +98,7 @@ kubeflow:
         app: dask-scheduler
         component: scheduler
       name: dask-scheduler-ui
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       ports:
         - name: dask-scheduler-ui
@@ -116,7 +116,7 @@ kubeflow:
     kind: VirtualService
     metadata:
       name: dask-scheduler
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       gateways:
         - kubeflow/kubeflow-gateway
@@ -125,12 +125,12 @@ kubeflow:
       http:
         - match:
             - uri:
-                prefix: /apps/${namespace}/dask/
+                prefix: /apps/kubeflow-user/dask/  # /apps/${namespace}/dask/
           rewrite:
             uri: /
           route:
             - destination:
-                host: dask-scheduler-ui.${namespace}.svc.cluster.local
+                host: dask-scheduler-ui.kubeflow-user  # dask-scheduler-ui.${namespace}.svc.cluster.local
                 port:
                   number: 80
           timeout: 300s
@@ -142,7 +142,7 @@ kubeflow:
       labels:
         app: dask-workers
       name: dask-workers
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       selector:
         matchLabels:
@@ -169,7 +169,7 @@ kubeflow:
               env: [ ]
               args:
                 - dask-worker
-                - dask-scheduler.${namespace}.svc.cluster.local:8786
+                - dask-scheduler.kubeflow-user.svc.cluster.local:8796  # dask-scheduler.${namespace}.svc.cluster.local:8786
                 - --nthreads
                 - "2"
                 - --memory-limit
@@ -193,12 +193,12 @@ kubeflow:
         app: dask-worker
         component: singleuser-storage
       name: dask-worker-pvc
-      namespace: ${namespace}
+      namespace: kubeflow-user  # ${namespace}
     spec:
       accessModes:
         - ReadWriteMany
       resources:
         requests:
-          storage: ${storage_size}Gi
-      storageClassName: ${storage_class}
+          storage: 10Gi # ${storage_size}Gi
+      storageClassName: default   # ${storage_class}
       volumeMode: Filesystem
