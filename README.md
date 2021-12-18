@@ -8,3 +8,7 @@ git clone https://github.com/jimthompson5802/dask-kubeflow
 # install as editable package
 pip install -e dask-kubeflow
 ```
+
+## VSCODE Environment setup
+* GIT Extension Pack
+* PyLint install (conda)
