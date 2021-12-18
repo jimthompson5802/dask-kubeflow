@@ -26,27 +26,38 @@ ISTIO_API_VERSION = 'v1alpha3'
 
 # TODO: assess integrating into dask-kubernetes
 class KubeflowCluster:
-    # TODO: revise constructor parameter list
-    def __init__(self):
+    """
+    KubeflowCluster provides interface to a kubeflow enabled kuberenetes cluster.
+    """
+    def __init__(
+        self, 
+        namespace: str='kubeflow-user'
+    ):
+        """
+        Parameters:
+        :param namespace: kubernetes namespace to run the dask cluster
+        """
+
+        self.namespace = namespace
+
         # read in k8s resource template definitions
         fn = os.path.join(os.path.dirname(__file__), 'kubeflow.yaml')
         with open(fn, 'r') as f:
             self.kubeflow_template = yaml.load(f, Loader=yaml.SafeLoader)
 
-        # TODO: generalize namespace specification
         # instantiate the dask scheduler deployment and service
         scheduler_deployment_resource = self.kubeflow_template['kubeflow']['scheduler-deployment-template']
         self.scheduler_deployment = utils.create_from_dict(
             api_client,
             scheduler_deployment_resource,
-            namespace='kubeflow-user'
+            namespace=self.namespace
         )[0]
 
         scheduler_service_resource = self.kubeflow_template['kubeflow']['scheduler-service-template']
         self.scheduler_service = utils.create_from_dict(
             api_client,
             scheduler_service_resource,
-            namespace='kubeflow-user'
+            namespace=self.namespace
         )[0]
 
         # istio custom resources
@@ -54,7 +65,7 @@ class KubeflowCluster:
         self.envoy_filter_object = custom_object_api.create_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
-            namespace='kubeflow-user',
+            namespace=self.namespace,
             plural='envoyfilters',
             body=envoy_filter
         )
@@ -63,29 +74,31 @@ class KubeflowCluster:
         self.virtual_service_object = custom_object_api.create_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
-            namespace='kubeflow-user',
+            namespace=self.namespace,
             plural='virtualservices',
             body=virtual_service
 )
 
     def close(self):
-        # TODO: remove hardcoding of namespace
+        """Shutdown the dask cluster """
+        
         # shutdown scheduler deployment
         v1_app_api.delete_namespaced_deployment(
             self.scheduler_deployment.metadata.name, 
-            namespace='kubeflow-user'
+            namespace=self.namespace
         )
 
         # shutdown scheduler service
         v1_api.delete_namespaced_service(
             self.scheduler_service.metadata.name, 
-            namespace='kubeflow-user'
+            namespace=self.namespace
         )
 
+        # shutdown istio custom resources
         custom_object_api.delete_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
-            namespace='kubeflow-user',
+            namespace=self.namespace,
             plural='virtualservices',
             name=self.virtual_service_object['metadata']['name']
         )
@@ -93,7 +106,7 @@ class KubeflowCluster:
         custom_object_api.delete_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
-            namespace='kubeflow-user',
+            namespace=self.namespace,
             plural='envoyfilters',
             name=self.envoy_filter_object['metadata']['name']
         )
