@@ -60,6 +60,13 @@ class KubeflowCluster:
             namespace=self.namespace
         )[0]
 
+        scheduler_ui_service_resource = self.kubeflow_template['kubeflow']['scheduler-ui-service-template']
+        self.scheduler_ui_service = utils.create_from_dict(
+            api_client,
+            scheduler_ui_service_resource,
+            namespace=self.namespace
+        )[0]
+
         # istio custom resources
         envoy_filter = self.kubeflow_template['kubeflow']['scheduler-envoyfilter-template']
         self.envoy_filter_object = custom_object_api.create_namespaced_custom_object(
@@ -91,6 +98,12 @@ class KubeflowCluster:
         # shutdown scheduler service
         v1_api.delete_namespaced_service(
             self.scheduler_service.metadata.name, 
+            namespace=self.namespace
+        )
+
+        # shutdown scheduler ui service
+        v1_api.delete_namespaced_service(
+            self.scheduler_ui_service.metadata.name, 
             namespace=self.namespace
         )
 

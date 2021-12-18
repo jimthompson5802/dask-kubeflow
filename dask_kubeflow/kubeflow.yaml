@@ -101,7 +101,7 @@ kubeflow:
       namespace: kubeflow-user  # TODO ${namespace}
     spec:
       ports:
-        - name: dask-scheduler-ui
+        - name: tcp-dask-scheduler-ui
           port: 80
           appProtocol: http
           targetPort: 8787
