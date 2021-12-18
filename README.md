@@ -1,5 +1,8 @@
 # Proof-of-Concept: Dask enabled for Kubeflow
 
+## System requirementes
+* kubernetes 1.19+
+* kubeflow 1.3+
 
 ## Development installation
 ```
