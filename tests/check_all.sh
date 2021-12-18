@@ -2,6 +2,10 @@
 
 echo ">>>deployment"
 kubectl get deploy dask-scheduler
+kubectl get deploy dask-worker
+
+echo -e "\n>>>worker pvc"
+kubectl get pvc dask-worker-pvc
 
 echo -e "\n>>> service"
 kubectl get service dask-scheduler

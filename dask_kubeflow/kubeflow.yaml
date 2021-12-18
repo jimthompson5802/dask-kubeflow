@@ -41,11 +41,11 @@ kubeflow:
                 - containerPort: 8787
               resources:
                 limits:
-                  cpu: "2"
-                  memory: 1G
+                  cpu: "2"         # TODO make configuration
+                  memory: 1G       # TODO make configuration
                 requests:
-                  cpu: "2"
-                  memory: 1G
+                  cpu: "2"         # TODO make configuration
+                  memory: 1G       # TODO make configuration
 
   scheduler-service-template:
     apiVersion: v1
@@ -140,20 +140,20 @@ kubeflow:
     kind: Deployment
     metadata:
       labels:
-        app: dask-workers
-      name: dask-workers
+        app: dask-worker
+      name: dask-worker
       namespace: kubeflow-user  # TODO ${namespace}
     spec:
       selector:
         matchLabels:
-          app: dask-workers
-          component: workers
+          app: dask-worker
+          component: worker
       replicas: 2 # TODO number of worker pods
       template:
         metadata:
           labels:
-            app: dask-workers
-            component: workers
+            app: dask-worker
+            component: worker
           annotations:
             sidecar.istio.io/inject: "false"
         spec:
@@ -162,30 +162,38 @@ kubeflow:
           securityContext: { }
           affinity: { }
           tolerations: [ ]
+          # volumes:
+          #   - name: dask-worker-storage
+          #     persistentVolumeClaim:
+          #       claimName: dask-worker-pvc
           containers:
             - name: dask-worker
               imagePullPolicy: Always
-              image: ${docker_image}
+              image: dsimages/dask_image:v7      # TODO make configuration
               env: [ ]
               args:
                 - dask-worker
-                - dask-scheduler.kubeflow-user.svc.cluster.local:8796  # TODO dask-scheduler.${namespace}.svc.cluster.local:8786
+                - dask-scheduler.kubeflow-user.svc.cluster.local:8786  # TODO dask-scheduler.${namespace}.svc.cluster.local:8786
                 - --nthreads
-                - "2"
+                - "2"           # TODO make configuration
                 - --memory-limit
-                - "2g"
+                - "2g"          # TODO make configuration
                 - --no-dashboard
               ports:
                 - containerPort: 8789
               resources:
                 limits:
-                  cpu: "12"
-                  memory: 24G
+                  cpu: "12"    # TODO make configuration
+                  memory: 24G  # TODO make configuration
                 requests:
-                  cpu: "2"
-                  memory: 2G
-
-  woker-peristentvolumneclaim-template:
+                  cpu: "2"     # TODO make configuration
+                  memory: 2G   # TODO make configuration
+              # volumeMounts:
+              #   - name: dask-worker-storage
+              #     mountPath: /home/dask_worker
+  
+  # TODO:  Assess requirement for Worker PVC
+  worker-persistentvolumeclaim-template:
     apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
@@ -200,5 +208,5 @@ kubeflow:
       resources:
         requests:
           storage: 10Gi # TODO ${storage_size}Gi
-      storageClassName: default   # TODO ${storage_class}
+      storageClassName: local-path   # TODO ${storage_class}
       volumeMode: Filesystem

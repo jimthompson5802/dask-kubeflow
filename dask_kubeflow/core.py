@@ -84,11 +84,41 @@ class KubeflowCluster:
             namespace=self.namespace,
             plural='virtualservices',
             body=virtual_service
-)
+        )
+
+        # setup workers
+        # instantiate the dask worker deployment
+        worker_deployment_resource = self.kubeflow_template['kubeflow']['worker-deployment-template']
+        self.worker_deployment = utils.create_from_dict(
+            api_client,
+            worker_deployment_resource,
+            namespace=self.namespace
+        )[0]
+
+        # # work storage pvc
+        # worker_pvc_resource = self.kubeflow_template['kubeflow']['worker-persistentvolumeclaim-template']
+        # self.worker_pvc = utils.create_from_dict(
+        #     api_client,
+        #     worker_pvc_resource,
+        #     namespace=self.namespace
+        # )[0]
 
     def close(self):
         """Shutdown the dask cluster """
+
+        # shutdown worker deployment
+        v1_app_api.delete_namespaced_deployment(
+            self.worker_deployment.metadata.name, 
+            namespace=self.namespace
+        )
         
+        # # remove worker pvc
+        # v1_api.delete_namespaced_persistent_volume_claim(
+        #     self.worker_pvc.metadata.name, 
+        #     namespace=self.namespace
+        # )
+
+
         # shutdown scheduler deployment
         v1_app_api.delete_namespaced_deployment(
             self.scheduler_deployment.metadata.name, 
