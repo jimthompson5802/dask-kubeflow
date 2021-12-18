@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from .core import KubeflowCluster
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -15,3 +17,5 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 logger.debug("entered import for dask_kubernetes")
+
+__all__ = ['KubeflowCluster']

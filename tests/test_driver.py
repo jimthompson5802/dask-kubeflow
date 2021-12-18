@@ -1,6 +1,9 @@
-import dask_kubeflow
 import logging
 import sys
+
+# TODO: fix up import to remove core submodule
+from dask_kubeflow.core import KubeflowCluster
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -18,3 +21,7 @@ logger.addHandler(ch)
 
 
 logger.info('entered dask_kubeflow')
+
+cluster = KubeflowCluster()
+
+print("all done")

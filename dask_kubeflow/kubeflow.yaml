@@ -6,7 +6,7 @@ kubeflow:
       labels:
         app: dask-scheduler
       name: dask-scheduler
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       selector:
         matchLabels:
@@ -29,7 +29,7 @@ kubeflow:
           containers:
             - name: dask-scheduler
               imagePullPolicy: Always
-              image: ${docker-image} #name of the image
+              image: dsimages/dask_image:v7  # TODO: ${docker-image} #name of the image
               args:
                 - dask-scheduler
                 - --port
@@ -52,7 +52,7 @@ kubeflow:
     kind: Service
     metadata:
       name: dask-scheduler
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
       labels:
         app: dask-scheduler
         component: scheduler
@@ -70,7 +70,7 @@ kubeflow:
     kind: EnvoyFilter
     metadata:
       name: add-header
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       configPatches:
         - applyTo: VIRTUAL_HOST
@@ -78,7 +78,7 @@ kubeflow:
             context: SIDECAR_OUTBOUND
             routeConfiguration:
               vhost:
-                name: dask-scheduler.kubeflow-user.svc.cluster.local:8786  # dask-scheduler.${namespace}.svc.cluster.local:8786
+                name: dask-scheduler.kubeflow-user.svc.cluster.local:8786  # TODO dask-scheduler.${namespace}.svc.cluster.local:8786
                 route:
                   name: default
           patch:
@@ -88,7 +88,7 @@ kubeflow:
                 - append: true
                   header:
                     key: kubeflow-userid
-                    value: kubeflow-user  # ${namespace}
+                    value: kubeflow-user  # TODO ${namespace}
 
   scheduler-ui-service-template:
     apiVersion: v1
@@ -98,7 +98,7 @@ kubeflow:
         app: dask-scheduler
         component: scheduler
       name: dask-scheduler-ui
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       ports:
         - name: dask-scheduler-ui
@@ -116,7 +116,7 @@ kubeflow:
     kind: VirtualService
     metadata:
       name: dask-scheduler
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       gateways:
         - kubeflow/kubeflow-gateway
@@ -125,12 +125,12 @@ kubeflow:
       http:
         - match:
             - uri:
-                prefix: /apps/kubeflow-user/dask/  # /apps/${namespace}/dask/
+                prefix: /apps/kubeflow-user/dask/  # TODO /apps/${namespace}/dask/
           rewrite:
             uri: /
           route:
             - destination:
-                host: dask-scheduler-ui.kubeflow-user  # dask-scheduler-ui.${namespace}.svc.cluster.local
+                host: dask-scheduler-ui.kubeflow-user  # TODO dask-scheduler-ui.${namespace}.svc.cluster.local
                 port:
                   number: 80
           timeout: 300s
@@ -142,13 +142,13 @@ kubeflow:
       labels:
         app: dask-workers
       name: dask-workers
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       selector:
         matchLabels:
           app: dask-workers
           component: workers
-      replicas: ${number_workers} #number of worker pods
+      replicas: 2 # TODO number of worker pods
       template:
         metadata:
           labels:
@@ -169,7 +169,7 @@ kubeflow:
               env: [ ]
               args:
                 - dask-worker
-                - dask-scheduler.kubeflow-user.svc.cluster.local:8796  # dask-scheduler.${namespace}.svc.cluster.local:8786
+                - dask-scheduler.kubeflow-user.svc.cluster.local:8796  # TODO dask-scheduler.${namespace}.svc.cluster.local:8786
                 - --nthreads
                 - "2"
                 - --memory-limit
@@ -193,12 +193,12 @@ kubeflow:
         app: dask-worker
         component: singleuser-storage
       name: dask-worker-pvc
-      namespace: kubeflow-user  # ${namespace}
+      namespace: kubeflow-user  # TODO ${namespace}
     spec:
       accessModes:
         - ReadWriteMany
       resources:
         requests:
-          storage: 10Gi # ${storage_size}Gi
-      storageClassName: default   # ${storage_class}
+          storage: 10Gi # TODO ${storage_size}Gi
+      storageClassName: default   # TODO ${storage_class}
       volumeMode: Filesystem
