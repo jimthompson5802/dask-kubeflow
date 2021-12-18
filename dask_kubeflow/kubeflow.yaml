@@ -69,7 +69,7 @@ kubeflow:
     apiVersion: networking.istio.io/v1alpha3
     kind: EnvoyFilter
     metadata:
-      name: add-header
+      name: dask-scheduler-add-header
       namespace: kubeflow-user  # TODO ${namespace}
     spec:
       configPatches:
