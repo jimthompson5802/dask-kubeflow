@@ -24,4 +24,7 @@ logger.info('entered dask_kubeflow')
 
 cluster = KubeflowCluster()
 
+
+cluster.close()
+
 print("all done")

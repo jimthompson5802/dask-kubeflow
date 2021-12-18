@@ -16,6 +16,7 @@ api_client = client.ApiClient()
 
 # V1 Core API Interface
 v1_api = client.CoreV1Api()
+v1_app_api = client.AppsV1Api()
 
 
 # TODO: assess integrating into dask-kubernetes
@@ -43,5 +44,11 @@ class KubeflowCluster:
             namespace='kubeflow-user'
         )[0]
 
+    def close(self):
+        # TODO: remove hardcoding of namespace
+        # shutdown scheduler deployment
+        v1_app_api.delete_namespaced_deployment('dask-scheduler', namespace='kubeflow-user')
 
+        # shutdown scheduler service
+        v1_api.delete_namespaced_service('dask-scheduler', namespace='kubeflow-user')
 
