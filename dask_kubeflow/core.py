@@ -50,8 +50,8 @@ class KubeflowCluster:
         )[0]
 
         # istio custom resources
-        self.envoy_filter = self.kubeflow_template['kubeflow']['scheduler-envoyfilter-template']
-        envoy_filter_object = custom_object_api.create_namespaced_custom_object(
+        envoy_filter = self.kubeflow_template['kubeflow']['scheduler-envoyfilter-template']
+        self.envoy_filter_object = custom_object_api.create_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
             namespace='kubeflow-user',
@@ -59,8 +59,8 @@ class KubeflowCluster:
             body=envoy_filter
         )
 
-        self.virtual_service = self.kubeflow_template['kubeflow']['scheduler-virtual-service-template']
-        virtual_service_object = custom_object_api.create_namespaced_custom_object(
+        virtual_service = self.kubeflow_template['kubeflow']['scheduler-virtual-service-template']
+        self.virtual_service_object = custom_object_api.create_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
             namespace='kubeflow-user',
@@ -71,23 +71,29 @@ class KubeflowCluster:
     def close(self):
         # TODO: remove hardcoding of namespace
         # shutdown scheduler deployment
-        v1_app_api.delete_namespaced_deployment('dask-scheduler', namespace='kubeflow-user')
+        v1_app_api.delete_namespaced_deployment(
+            self.scheduler_deployment.metadata.name, 
+            namespace='kubeflow-user'
+        )
 
         # shutdown scheduler service
-        v1_api.delete_namespaced_service('dask-scheduler', namespace='kubeflow-user')
+        v1_api.delete_namespaced_service(
+            self.scheduler_service.metadata.name, 
+            namespace='kubeflow-user'
+        )
 
-        api_custom_object.delete_namespaced_custom_object(
+        custom_object_api.delete_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
             namespace='kubeflow-user',
             plural='virtualservices',
-            name='dask-scheduler'
+            name=self.virtual_service_object['metadata']['name']
         )
 
-        api_custom_object.delete_namespaced_custom_object(
+        custom_object_api.delete_namespaced_custom_object(
             group=ISTIO_API_GROUP, 
             version=ISTIO_API_VERSION,
             namespace='kubeflow-user',
             plural='envoyfilters',
-            name='add-header'
+            name=self.envoy_filter_object['metadata']['name']
         )
