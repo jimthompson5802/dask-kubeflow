@@ -1,5 +1,6 @@
 import logging
 import sys
+from time import sleep
 
 # TODO: fix up import to remove core submodule
 from dask_kubeflow.core import KubeflowCluster
@@ -26,6 +27,13 @@ cluster = KubeflowCluster()
 
 print(cluster.scheduler_service_address)
 
+while True:
+    requested_workers, ready_workers = cluster.worker_count
+    print(f'requested workers: {requested_workers}, ready workers: {ready_workers}')
+    if (requested_workers > 0) and (requested_workers == ready_workers):
+        break
+    sleep(1)
+    
 cluster.close()
 
 print("all done")

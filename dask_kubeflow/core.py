@@ -1,6 +1,7 @@
 import logging
 import os
 import yaml
+from typing import Tuple
 
 from kubernetes import client, config, utils
 
@@ -104,11 +105,22 @@ class KubeflowCluster:
         # )[0]
 
     @property
-    def scheduler_service_address(self):
+    def scheduler_service_address(self) -> str:
+        """Retrieve scheduler service location"""
         service_name = self.scheduler_service.metadata.name
         service_port = self.scheduler_service.spec.ports[0].port
         service_address = 'tcp://' + service_name + '.' + self.namespace + '.svc.cluster.local:' + str(service_port)
         return service_address
+
+    @property
+    def worker_count(self) -> Tuple['requested_count', 'ready_count']:
+        """Retrieve worker counts"""
+        worker_deployment = v1_app_api.read_namespaced_deployment(
+            name=self.worker_deployment.metadata.name,
+            namespace=self.namespace
+        )
+        return worker_deployment.status.replicas if not worker_deployment.status.replicas is None else 0, \
+                worker_deployment.status.ready_replicas if not worker_deployment.status.ready_replicas is None else 0
  
     def close(self):
         """Shutdown the dask cluster """
