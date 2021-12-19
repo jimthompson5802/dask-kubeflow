@@ -24,6 +24,7 @@ logger.info('entered dask_kubeflow')
 
 cluster = KubeflowCluster()
 
+print(cluster.scheduler_service_address)
 
 cluster.close()
 

@@ -103,6 +103,13 @@ class KubeflowCluster:
         #     namespace=self.namespace
         # )[0]
 
+    @property
+    def scheduler_service_address(self):
+        service_name = self.scheduler_service.metadata.name
+        service_port = self.scheduler_service.spec.ports[0].port
+        service_address = 'tcp://' + service_name + '.' + self.namespace + '.svc.cluster.local:' + str(service_port)
+        return service_address
+ 
     def close(self):
         """Shutdown the dask cluster """
 
