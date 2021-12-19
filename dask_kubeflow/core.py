@@ -197,7 +197,7 @@ class KubeflowCluster:
             name=self.envoy_filter_object['metadata']['name']
         )
 
-    def wait_for_workers(self, timeout: int=600, verbose: bool=False) -> bool:
+    def wait_for_workers(self, timeout: int=900, verbose: bool=False) -> bool:
         """Wait for requested workers to be come active
         Parameters:
         :param timeout: Number of seconds to wait for workers to be come active
