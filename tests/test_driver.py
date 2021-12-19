@@ -1,6 +1,6 @@
 import logging
 import sys
-from time import sleep
+
 
 # TODO: fix up import to remove core submodule
 from dask_kubeflow.core import KubeflowCluster
@@ -35,13 +35,13 @@ print(f'worker count before scale: {cluster.worker_count}')
 
 # scale down
 cluster.scale(1)
-sleep(2)
+
 cluster.wait_for_workers(verbose=True)
 print(f'worker count after scale down: {cluster.worker_count}')
 
 # scale up
 cluster.scale(3)
-sleep(2)
+
 cluster.wait_for_workers(verbose=True)
 print(f'worker count after scale up: {cluster.worker_count}')
 
