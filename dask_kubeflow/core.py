@@ -210,6 +210,8 @@ class KubeflowCluster:
         Parameters:
         :param timeout: Number of seconds to wait for workers to be come active
         :param verbose: True print periodic progress message, False no messages
+                        progress message printed once per second for first 10 seconds
+                        after which message printed every ten seconds.
 
         Return:
         bool: True if requested workers are active, False if time out occurred before workers are active
@@ -217,8 +219,8 @@ class KubeflowCluster:
         counter = 0
         while True:
             requested_workers, ready_workers = self.worker_count
-            if verbose:
-                logger.info(f'requested workers: {requested_workers}, ready workers: {ready_workers}')
+            if verbose and ((counter < 10) or (counter % 10 == 0)):
+                logger.info(f'wait time: {counter} (sec), requested workers: {requested_workers}, ready workers: {ready_workers}')
             if (requested_workers > 0) and (requested_workers == ready_workers):
                 return True
             else:
