@@ -31,10 +31,21 @@ print(f'wait for workers short time out: {wait_return}')
 wait_return = cluster.wait_for_workers(verbose=True)
 print(f'wait for workers long time out: {wait_return}')
 
-# cluster.scale(4)
+print(f'worker count before scale: {cluster.worker_count}')
 
-# wait_for_workers(cluster)
+# scale down
+cluster.scale(1)
+sleep(2)
+cluster.wait_for_workers(verbose=True)
+print(f'worker count after scale down: {cluster.worker_count}')
 
+# scale up
+cluster.scale(3)
+sleep(2)
+cluster.wait_for_workers(verbose=True)
+print(f'worker count after scale up: {cluster.worker_count}')
+
+print('cleaning up')
 cluster.close()
 
 print("all done")

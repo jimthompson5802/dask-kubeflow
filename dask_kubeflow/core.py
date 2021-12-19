@@ -117,22 +117,14 @@ class KubeflowCluster:
         """
         worker_deployment_name = self.worker_deployment.metadata.name
 
-        scale_spec = client.V1ScaleSpec()
-        scale_spec.replicas = count
+        scale_spec = client.V1ScaleSpec(replicas=count)
 
-        metadata = client.V1ObjectMeta()
-        metadata.name = worker_deployment_name
-        metadata.namespace = self.namespace
+        scale_metadata = client.V1ObjectMeta(name=worker_deployment_name, namespace=self.namespace)
 
-        scale = client.V1Scale() 
-        scale.spec = scale_spec
-        # scale.meatadata = metadata
-
-        logger.debug(f'worker deployment name: {worker_deployment_name}, type: {type(worker_deployment_name)}')
         v1_app_api.replace_namespaced_deployment_scale(
             name=worker_deployment_name,
             namespace=self.namespace,
-            body=client.V1Scale(),
+            body=client.V1Scale(metadata=scale_metadata, spec=scale_spec),
             pretty='true'
         )
 
@@ -219,7 +211,8 @@ class KubeflowCluster:
         counter = 0
         while True:
             requested_workers, ready_workers = self.worker_count
-            if verbose and ((counter < 10) or (counter % 10 == 0)):
+            if verbose and ((counter < 10) or (counter >= 10 and counter % 10 == 0 and counter < 120) or
+                (counter >= 120 and counter % 30 == 0) ):
                 logger.info(f'wait time: {counter} (sec), requested workers: {requested_workers}, ready workers: {ready_workers}')
             if (requested_workers > 0) and (requested_workers == ready_workers):
                 return True
