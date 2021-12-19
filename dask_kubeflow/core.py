@@ -6,7 +6,7 @@ from typing import Tuple
 from kubernetes import client, config, utils
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 # get in-cluster config
@@ -103,6 +103,37 @@ class KubeflowCluster:
         #     worker_pvc_resource,
         #     namespace=self.namespace
         # )[0]
+
+    def scale(self, count: int) -> None:
+        """
+        Adjust number of workers
+
+        Parameters:
+        :param count: Number of workers requested
+
+        Return:
+        None
+        """
+        worker_deployment_name = self.worker_deployment.metadata.name
+
+        scale_spec = client.V1ScaleSpec()
+        scale_spec.replicas = count
+
+        metadata = client.V1ObjectMeta()
+        metadata.name = worker_deployment_name
+        metadata.namespace = self.namespace
+
+        scale = client.V1Scale() 
+        scale.spec = scale_spec
+        # scale.meatadata = metadata
+
+        logger.debug(f'worker deployment name: {worker_deployment_name}, type: {type(worker_deployment_name)}')
+        v1_app_api.replace_namespaced_deployment_scale(
+            name=worker_deployment_name,
+            namespace=self.namespace,
+            body=client.V1Scale(),
+            pretty='true'
+        )
 
     @property
     def scheduler_service_address(self) -> str:
