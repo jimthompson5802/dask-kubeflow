@@ -91,6 +91,7 @@ class KubeflowCluster:
         # setup workers
         # instantiate the dask worker deployment
         worker_deployment_resource = self.kubeflow_template['kubeflow']['worker-deployment-template']
+        self.requested_replicas = worker_deployment_resource['spec']['replicas']
         self.worker_deployment = utils.create_from_dict(
             api_client,
             worker_deployment_resource,
@@ -118,6 +119,7 @@ class KubeflowCluster:
         worker_deployment_name = self.worker_deployment.metadata.name
 
         scale_spec = client.V1ScaleSpec(replicas=count)
+        self.requested_replicas = count
 
         scale_metadata = client.V1ObjectMeta(name=worker_deployment_name, namespace=self.namespace)
 
@@ -143,7 +145,7 @@ class KubeflowCluster:
             name=self.worker_deployment.metadata.name,
             namespace=self.namespace
         )
-        return worker_deployment.status.replicas if not worker_deployment.status.replicas is None else 0, \
+        return self.requested_replicas, \
                 worker_deployment.status.ready_replicas if not worker_deployment.status.ready_replicas is None else 0
  
     def close(self):
