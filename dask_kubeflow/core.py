@@ -1,7 +1,8 @@
 import logging
 import os
-import yaml
+from time import sleep
 from typing import Tuple
+import yaml
 
 from kubernetes import client, config, utils
 
@@ -203,3 +204,25 @@ class KubeflowCluster:
             plural='envoyfilters',
             name=self.envoy_filter_object['metadata']['name']
         )
+
+    def wait_for_workers(self, timeout: int=600, verbose: bool=False) -> bool:
+        """Wait for requested workers to be come active
+        Parameters:
+        :param timeout: Number of seconds to wait for workers to be come active
+        :param verbose: True print periodic progress message, False no messages
+
+        Return:
+        bool: True if requested workers are active, False if time out occurred before workers are active
+        """
+        counter = 0
+        while True:
+            requested_workers, ready_workers = self.worker_count
+            if verbose:
+                logger.info(f'requested workers: {requested_workers}, ready workers: {ready_workers}')
+            if (requested_workers > 0) and (requested_workers == ready_workers):
+                return True
+            else:
+                counter += 1
+                if counter >= timeout:
+                    return False
+            sleep(1)
