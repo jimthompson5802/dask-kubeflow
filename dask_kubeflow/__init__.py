@@ -16,6 +16,6 @@ ch.setFormatter(formatter)
 
 logger.addHandler(ch)
 
-logger.debug("entered import for dask_kuberflow")
+logger.debug("entered import for dask_kubeflow")
 
 __all__ = ['KubeflowCluster']
