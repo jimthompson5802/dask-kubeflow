@@ -7,3 +7,5 @@ cluster = KubeCluster('worker-spec.yaml', scheduler_service_wait_timeout=120, en
 cluster.scale(2)  # specify number of workers explicitly
 
 # cluster.adapt(minimum=1, maximum=100)  # or dynamically scale based on current workload
+cluster.close()
+print('all done')
