@@ -15,6 +15,8 @@ pip install -e dask_kubeflow
 ## VSCODE Environment setup
 * GIT Extension Pack
 * PyLint install (conda)
+* Bookmarks
+
 
 ## High-level Design Outline
 Key class: `KubeflowCluster()` with these methods:
