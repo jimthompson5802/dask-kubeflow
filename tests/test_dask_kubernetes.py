@@ -20,8 +20,6 @@ def run_test_case(client, array):
         '\n***'
     )
 
-
-
 # start up cluster with 2 workers
 cluster = KubeCluster('worker-spec.yaml', n_workers=1, enable_kubeflow=True)
 client = Client(cluster)
