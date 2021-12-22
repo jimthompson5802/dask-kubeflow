@@ -16,7 +16,7 @@ def run_test_case(client, array):
     elpased_time = datetime.now() - start_time
     print(
         '***\n'
-        f'* nubmer of workers: {number_of_workers}, '
+        f'* number of workers: {number_of_workers}, '
         f'elapsed time: {elpased_time}, answer: {answer}'
         '\n***'
     )
