@@ -4,12 +4,13 @@ from datetime import datetime
 
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
+from distributed.core import Status
 import dask.array as da
 
 print(f'working dir: {os.getcwd()}')
 
 def run_test_case(client, array):
-    number_of_workers = len(client.cluster.workers)
+    number_of_workers = count_ready_workers(client)
     start_time = datetime.now()
     answer = array.mean().compute()
     elpased_time = datetime.now() - start_time
@@ -20,7 +21,14 @@ def run_test_case(client, array):
         '\n***'
     )
 
-# start up cluster with 2 workers
+def count_ready_workers(client):
+    count = 0
+    for c in client.cluster.workers:
+        if client.cluster.workers[c].status == Status.running:
+            count += 1
+    return count
+
+# start up cluster with 1 workers
 cluster = KubeCluster('worker-spec.yaml', n_workers=1, enable_kubeflow=True)
 client = Client(cluster)
 
@@ -34,11 +42,14 @@ run_test_case(client, array)
 print("\n\ntest case for three workers")
 cluster.scale(3)
 counter = 0
-while len(client.cluster.workers) != 3: 
+while True:
+    ready_worker_count = count_ready_workers(client) 
     sleep(1)
     counter += 1
-    print(f'scaling...waiting {counter} seconds')
-    if counter > 60:
+    print(f'scaling...ready workers: {ready_worker_count}...waiting {counter} seconds')
+    if ready_worker_count == 3:
+        break
+    elif counter > 60:
         raise RuntimeError('Scale up operation, did not complete in required time.')
 run_test_case(client, array)
 
@@ -46,13 +57,15 @@ run_test_case(client, array)
 print("\n\ntest case for two workers")
 cluster.scale(2)
 counter = 0
-while len(client.cluster.workers) != 2: 
+while True:
+    ready_worker_count = count_ready_workers(client) 
     sleep(1)
     counter += 1
-    print(f'scaling...waiting {counter} seconds')
-    if counter > 60:
-        raise RuntimeError('Scale down operation, did not complete in required time.')
-
+    print(f'scaling...ready workers: {ready_worker_count}...waiting {counter} seconds')
+    if ready_worker_count == 2:
+        break
+    elif counter > 60:
+        raise RuntimeError('Scale up operation, did not complete in required time.')
 run_test_case(client, array)
 
 
