@@ -2,7 +2,9 @@
 
 Implementation as separate package from `dask-kubernetes`.  This approach is **DEPRECATED**.
 
-**Only useful assets in this repo are the programs to test kubeflow enabled `dask-kubernetes` modifications.  See `tests` directory.**
+**Useful assets in this repo**:
+* The programs to test kubeflow enabled `dask-kubernetes` modifications.  See `tests` directory.
+* Contents in `docker` directory to build jupyter notebook image with `dask-labextension` and network tools for debugging.
 
 ## System requirementes
 * kubernetes 1.19+
