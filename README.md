@@ -1,5 +1,11 @@
 # Proof-of-Concept: Dask enabled for Kubeflow
 
+Implementation as separate package from `dask-kubernetes`.  This approach is **DEPRECATED**.
+
+**Useful assets in this repo**:
+* The programs to test kubeflow enabled `dask-kubernetes` modifications.  See `tests` directory.
+* Contents in `docker` directory to build jupyter notebook image with `dask-labextension` and network tools for debugging.
+
 ## System requirementes
 * kubernetes 1.19+
 * kubeflow 1.3+

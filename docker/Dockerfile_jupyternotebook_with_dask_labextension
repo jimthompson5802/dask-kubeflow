@@ -4,7 +4,7 @@ FROM   public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter-scipy:v1.4
 # install useful debugging tools
 USER root
 RUN apt-get update \
-    && apt-get install -y net-tools netcat
+    && apt-get install -y net-tools netcat dnsutils
 
 USER jovyan
 # install dask-labextension
