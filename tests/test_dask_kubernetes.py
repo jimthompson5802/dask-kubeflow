@@ -68,5 +68,6 @@ while True:
         raise RuntimeError('Scale up operation, did not complete in required time.')
 run_test_case(client, array)
 
-
+client.close()
+cluster.close()
 print('all done')
