@@ -68,6 +68,9 @@ while True:
         raise RuntimeError('Scale up operation, did not complete in required time.')
 run_test_case(client, array)
 
+# retrieve log files
+logs = cluster.get_logs()
+
 client.close()
 cluster.close()
 print('all done')
