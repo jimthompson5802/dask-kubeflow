@@ -1,5 +1,9 @@
 # Proof-of-Concept: Dask enabled for Kubeflow
 
+Implementation as separate package from `dask-kubernetes`.  This approach is **DEPRECATED**.
+
+**Only useful assets in this repo are the programs to test kubeflow enabled `dask-kubernetes` modifications.  See `tests` directory.**
+
 ## System requirementes
 * kubernetes 1.19+
 * kubeflow 1.3+
