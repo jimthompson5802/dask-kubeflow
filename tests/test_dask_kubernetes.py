@@ -30,7 +30,7 @@ def count_ready_workers(client):
 
 # start up cluster with 1 workers
 cluster = KubeCluster('worker-spec.yaml', n_workers=1, enable_kubeflow=True)
-client = Client(cluster, timeout=60)  # allow 1 minute timeout for docker image download
+client = Client(cluster, timeout=90)  # extend timeout for docker image download
 
 # Create a large array and calculate the mean
 array = da.ones((10000, 1000, 1000), chunks=100)
